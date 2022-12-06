@@ -31,7 +31,9 @@
 #include <cmath>
 #include <string>
 #include <sstream>
-
+#include <math.h>  
+#include <nav_msgs/Odometry.h>
+ #include <tf/transform_broadcaster.h>
 using namespace ublox_node;
 
 //! How long to wait during I/O reset [s]
@@ -760,7 +762,7 @@ void UbloxFirmware6::callbackNavPosLlh(const ublox_msgs::NavPOSLLH& m) {
 
   // Position message
   static ros::Publisher fixPublisher =
-      nh->advertise<sensor_msgs::NavSatFix>("fix", kROSQueueSize);
+      nh->advertise<sensor_msgs::NavSatFix>("/fix", kROSQueueSize);
   if (m.iTOW == last_nav_vel_.iTOW)
     fix_.header.stamp = velocity_.header.stamp; // use last timestamp
   else
@@ -1737,6 +1739,30 @@ void HpPosRecProduct::subscribe() {
   nh->param("publish/nav/heading", enabled["nav_heading"], enabled["nav"]);
 }
 
+void PublishTF(const double x, const double y, const double z){
+static tf::TransformBroadcaster br;
+  tf::Transform transform;
+  transform.setOrigin( tf::Vector3(x,y,z) );
+  tf::Quaternion q;
+  q.setRPY(0, 0, 0);
+  transform.setRotation(q);
+  br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "gps_est"));
+}
+void PublishOdom(const double x, const double y, const double z){
+  static ros::Publisher odom_pub = nh->advertise<nav_msgs::Odometry>("/gps_est", 100);
+  nav_msgs::Odometry odomNew;
+  odomNew.header.frame_id = "world";
+
+  odomNew.pose.pose.position.x = x;
+  odomNew.pose.pose.position.y = y;
+  odomNew.pose.pose.position.z = z;
+  odomNew.pose.pose.orientation.x = 0;
+  odomNew.pose.pose.orientation.y = 0;
+  odomNew.pose.pose.orientation.z = 0;
+  odomNew.pose.pose.orientation.w = 1;
+  odom_pub.publish(odomNew);
+
+}
 void HpPosRecProduct::callbackNavHpPosLlh(const ublox_msgs::NavHPPOSLLH& m) {
   if (enabled["nav_hpposllh"]) {
     static ros::Publisher publisher =
@@ -1754,6 +1780,18 @@ void HpPosRecProduct::callbackNavHpPosLlh(const ublox_msgs::NavHPPOSLLH& m) {
     fix_msg.latitude = m.lat * 1e-7 + m.latHp * 1e-9;
     fix_msg.longitude = m.lon * 1e-7 + m.lonHp * 1e-9;
     fix_msg.altitude = m.height * 1e-3 + m.heightHp * 1e-4;
+    const double R = 6371*1000; 
+    const double x = R * cos(fix_msg.latitude*M_PI/180.0) * cos(fix_msg.longitude*M_PI/180.0);
+    const double y = R * cos(fix_msg.latitude*M_PI/180.0) * sin(fix_msg.longitude*M_PI/180.0);
+    const double z = R * sin(fix_msg.latitude*M_PI/180.0);
+  static double x_origin = x;
+  static double y_origin = y;
+  static double z_origin = z;
+  
+    PublishOdom(x-x_origin,y-y_origin,z- z_origin);
+    PublishTF(x-x_origin,y-y_origin,z- z_origin);
+    
+    
 
     if (m.invalid_llh) {
       fix_msg.status.status = fix_msg.status.STATUS_NO_FIX;
@@ -1775,6 +1813,8 @@ void HpPosRecProduct::callbackNavHpPosLlh(const ublox_msgs::NavHPPOSLLH& m) {
     fixPublisher.publish(fix_msg);
   }
 }
+
+
 
 void HpPosRecProduct::callbackNavRelPosNed(const ublox_msgs::NavRELPOSNED9 &m) {
   if (enabled["nav_relposned"]) {
