@@ -1933,6 +1933,7 @@ void TimProduct::initializeRosDiagnostics() {
 }
 
 void rtcmCallback(const rtcm_msgs::Message::ConstPtr &msg) {
+  std::cout << "send rtcm" << std::endl;
   gps.sendRtcm(msg->message);
 }
 
