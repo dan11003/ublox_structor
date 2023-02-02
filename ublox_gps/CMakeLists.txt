@@ -43,10 +43,19 @@ target_link_libraries(ublox_gps
 target_link_libraries(ublox_gps
   ${catkin_LIBRARIES}
 )
-
 # build node
 add_executable(ublox_gps_node src/node.cpp src/mkgmtime.c src/raw_data_pa.cpp)
 set_target_properties(ublox_gps_node PROPERTIES OUTPUT_NAME ublox_gps)
+
+add_executable(gps_latch_fix_node src/GpsLatchFixNode.cpp )
+set_target_properties(gps_latch_fix_node PROPERTIES OUTPUT_NAME gps_latch_fix_node)
+
+
+target_link_libraries(gps_latch_fix_node boost_system boost_regex boost_thread)
+target_link_libraries(gps_latch_fix_node ${catkin_LIBRARIES})
+target_link_libraries(gps_latch_fix_node ublox_gps)
+
+
 
 target_link_libraries(ublox_gps_node boost_system boost_regex boost_thread)
 target_link_libraries(ublox_gps_node ${catkin_LIBRARIES})
@@ -58,7 +67,7 @@ set_target_properties(ublox_logger_node PROPERTIES OUTPUT_NAME ublox_logger)
 
 target_link_libraries(ublox_logger_node ${catkin_LIBRARIES})
 
-install(TARGETS ublox_gps ublox_gps_node ublox_logger_node
+install(TARGETS ublox_gps ublox_gps_node ublox_logger_node gps_latch_fix_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
