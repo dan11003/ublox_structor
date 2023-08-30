@@ -268,7 +268,7 @@ void UbloxNode::printInf(const ublox_msgs::Inf &m, uint8_t id) {
 void UbloxNode::subscribe() {
   ROS_DEBUG("Subscribing to U-Blox messages");
   // subscribe messages
-  nh->param("publish/all", enabled["all"], false);
+  nh->param("publish/all", enabled["all"],true);
   nh->param("inf/all", enabled["inf"], true);
   nh->param("publish/nav/all", enabled["nav"], enabled["all"]);
   nh->param("publish/rxm/all", enabled["rxm"], enabled["all"]);
@@ -291,7 +291,7 @@ void UbloxNode::subscribe() {
     gps.subscribe<ublox_msgs::NavCLOCK>(boost::bind(
         publish<ublox_msgs::NavCLOCK>, _1, "navclock"), kSubscribeRate);
 
-  nh->param("publish/nmea", enabled["nmea"], false);
+  nh->param("publish/nmea", enabled["nmea"], true);
   if (enabled["nmea"])
     gps.subscribe_nmea(boost::bind(publish_nmea, _1, "nmea"));
 
@@ -633,7 +633,7 @@ void UbloxFirmware6::getRosParams() {
   // Fix Service type, used when publishing fix status messages
   fix_status_service = sensor_msgs::NavSatStatus::SERVICE_GPS;
 
-  nh->param("nmea/set", set_nmea_, false);
+  nh->param("nmea/set", set_nmea_, true);
   if (set_nmea_) {
     bool compat, consider;
 

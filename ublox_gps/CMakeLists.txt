@@ -50,10 +50,17 @@ set_target_properties(ublox_gps_node PROPERTIES OUTPUT_NAME ublox_gps)
 add_executable(gps_latch_fix_node src/GpsLatchFixNode.cpp )
 set_target_properties(gps_latch_fix_node PROPERTIES OUTPUT_NAME gps_latch_fix_node)
 
+add_executable(ublox2nmea src/ublox2nmea.cpp )
+set_target_properties(ublox2nmea PROPERTIES OUTPUT_NAME ublox2nmea)
+
+
+target_link_libraries(ublox2nmea boost_system boost_regex boost_thread)
+target_link_libraries(ublox2nmea ${catkin_LIBRARIES})
+target_link_libraries(ublox2nmea ublox_gps)
 
 target_link_libraries(gps_latch_fix_node boost_system boost_regex boost_thread)
 target_link_libraries(gps_latch_fix_node ${catkin_LIBRARIES})
-target_link_libraries(gps_latch_fix_node ublox_gps)
+#target_link_libraries(gps_latch_fix_node ublox_gps)
 
 
 
