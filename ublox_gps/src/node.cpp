@@ -368,8 +368,10 @@ void UbloxNode::initializeRosDiagnostics() {
 
 void UbloxNode::processMonVer() {
   ublox_msgs::MonVER monVer;
-  if (!gps.poll(monVer))
-    throw std::runtime_error("Failed to poll MonVER & set relevant settings");
+  if (!gps.poll(monVer)) {
+    ROS_WARN("Failed to poll MonVER - continuing anyway (device may be in startup state)");
+    return;
+  }
 
   ROS_DEBUG("%s, HW VER: %s", monVer.swVersion.c_array(),
                monVer.hwVersion.c_array());

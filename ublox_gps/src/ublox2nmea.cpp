@@ -56,13 +56,13 @@ void Transformer::receiveNavPVT(const ublox_msgs::NavPVT::ConstPtr &navpvt_msg) 
 
   // Lat conversion
   char lat_dir = navpvt_msg->lat < 0 ? 'S' : 'N';
-  int8_t lat_degs = navpvt_msg->lat / 1e7;
-  double lat_mins = (navpvt_msg->lat - lat_degs * 1e7) / 1e7 * 60.0;
+  int8_t lat_degs = std::abs(navpvt_msg->lat / 1e7);
+  double lat_mins = std::abs((navpvt_msg->lat - (navpvt_msg->lat / 1e7) * 1e7) / 1e7 * 60.0);
 
   // Lon conversion
   char lon_dir = navpvt_msg->lon < 0 ? 'W' : 'E';
-  int8_t lon_degs = navpvt_msg->lon / 1e7;
-  double lon_mins = (navpvt_msg->lon - lon_degs * 1e7) / 1e7 * 60.0;
+  int8_t lon_degs = std::abs(navpvt_msg->lon / 1e7);
+  double lon_mins = std::abs((navpvt_msg->lon - (navpvt_msg->lon / 1e7) * 1e7) / 1e7 * 60.0);
 
   // Status conversion
   int8_t status = (navpvt_msg->fixType == ublox_msgs::NavPVT::FIX_TYPE_3D) ? 1 : 0;
@@ -84,7 +84,7 @@ void Transformer::receiveNavPVT(const ublox_msgs::NavPVT::ConstPtr &navpvt_msg) 
                     navpvt_msg->numSV,
                     navpvt_msg->pDOP / 100.0,
                     navpvt_msg->hMSL / 1000,
-                    navpvt_msg->hMSL % 1000,
+                    std::abs(navpvt_msg->hMSL % 1000),
                     (navpvt_msg->height - navpvt_msg->hMSL) / 1000,
                     std::abs((navpvt_msg->height - navpvt_msg->hMSL)) % 1000
   );
